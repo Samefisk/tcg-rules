@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1051" height="756" viewBox="0 0 1051 756">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#13264c"/>
+      <stop offset="50%" stop-color="#355e9a"/>
+      <stop offset="100%" stop-color="#d8efff"/>
+    </linearGradient>
+  </defs>
+  <rect width="1051" height="756" rx="36" fill="url(#bg)"/>
+  <rect x="40" y="40" width="971" height="676" rx="24" fill="none" stroke="rgba(255,255,255,0.45)"/>
+  <text x="72" y="118" fill="#f4fbff" font-size="58" font-family="Georgia, serif">ARCANE FIELD</text>
+  <text x="72" y="182" fill="#dbefff" font-size="34" font-family="Arial, sans-serif">Example Placeholder</text>
+  <text x="72" y="340" fill="#ffffff" font-size="124" font-weight="700" font-family="Arial, sans-serif">FIELD</text>
+  <text x="72" y="424" fill="#dbefff" font-size="34" font-family="Arial, sans-serif">Sideways Center Objective Card</text>
+  <rect x="72" y="526" width="300" height="108" rx="18" fill="rgba(10,24,49,0.34)"/>
+  <text x="102" y="590" fill="#ffffff" font-size="38" font-family="Arial, sans-serif">Replace With Real Art</text>
+</svg>

@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="756" height="1051" viewBox="0 0 756 1051">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#5a2b11"/>
+      <stop offset="55%" stop-color="#b86e26"/>
+      <stop offset="100%" stop-color="#fff0d4"/>
+    </linearGradient>
+  </defs>
+  <rect width="756" height="1051" rx="32" fill="url(#bg)"/>
+  <rect x="34" y="34" width="688" height="983" rx="22" fill="none" stroke="rgba(255,255,255,0.42)"/>
+  <text x="60" y="122" fill="#fffaf4" font-size="52" font-family="Georgia, serif">SKILL EXAMPLE</text>
+  <text x="60" y="184" fill="#fff1e0" font-size="28" font-family="Arial, sans-serif">Type Placeholder</text>
+  <text x="60" y="372" fill="#ffffff" font-size="120" font-weight="700" font-family="Arial, sans-serif">TYPE 3</text>
+  <text x="60" y="448" fill="#fffaf4" font-size="34" font-family="Arial, sans-serif">Upright Skill Example</text>
+  <rect x="60" y="820" width="310" height="120" rx="18" fill="rgba(48,22,6,0.34)"/>
+  <text x="90" y="892" fill="#ffffff" font-size="38" font-family="Arial, sans-serif">Replace With Real Art</text>
+</svg>

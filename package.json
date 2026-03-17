@@ -1,0 +1,18 @@
+{
+  "name": "tcg-rules",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "generate": "node scripts/generate-content-from-markdown.mjs",
+    "migrate": "node scripts/migrate-to-structured-content.mjs",
+    "restructure": "node scripts/restructure-rules.mjs",
+    "normalize": "node scripts/normalize-content.mjs",
+    "validate": "node scripts/validate-content.mjs",
+    "build": "node scripts/generate-content-from-markdown.mjs && node scripts/validate-content.mjs && node scripts/build-site.mjs",
+    "preview": "node scripts/preview-site.mjs",
+    "test:glossary-summaries": "npm run build && node scripts/test-glossary-summaries.mjs",
+    "test:section-1-cards": "npm run build && node scripts/test-section-1-card-consistency.mjs",
+    "test:badges": "npm run build && node scripts/test-badge-consistency.mjs"
+  }
+}

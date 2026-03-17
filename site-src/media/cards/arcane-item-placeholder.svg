@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="756" height="1051" viewBox="0 0 756 1051">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#5b4b11"/>
+      <stop offset="50%" stop-color="#c7a73a"/>
+      <stop offset="100%" stop-color="#fff4c9"/>
+    </linearGradient>
+  </defs>
+  <rect width="756" height="1051" rx="32" fill="url(#bg)"/>
+  <rect x="34" y="34" width="688" height="983" rx="22" fill="none" stroke="rgba(255,255,255,0.42)"/>
+  <text x="60" y="122" fill="#fffdf2" font-size="52" font-family="Georgia, serif">ARCANE ITEM</text>
+  <text x="60" y="184" fill="#fff8de" font-size="28" font-family="Arial, sans-serif">Example Placeholder</text>
+  <text x="60" y="372" fill="#ffffff" font-size="106" font-weight="700" font-family="Arial, sans-serif">ITEM</text>
+  <text x="60" y="448" fill="#fffdf2" font-size="34" font-family="Arial, sans-serif">Upright Objective Card</text>
+  <rect x="60" y="820" width="310" height="120" rx="18" fill="rgba(59,40,8,0.34)"/>
+  <text x="90" y="892" fill="#ffffff" font-size="38" font-family="Arial, sans-serif">Replace With Real Art</text>
+</svg>
