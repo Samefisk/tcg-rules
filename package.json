@@ -14,5 +14,8 @@
     "test:glossary-summaries": "npm run build && node scripts/test-glossary-summaries.mjs",
     "test:section-1-cards": "npm run build && node scripts/test-section-1-card-consistency.mjs",
     "test:badges": "npm run build && node scripts/test-badge-consistency.mjs"
+  },
+  "devDependencies": {
+    "playwright": "^1.58.2"
   }
 }
