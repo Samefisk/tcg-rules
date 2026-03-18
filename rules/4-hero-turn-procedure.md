@@ -63,9 +63,13 @@ Then move that hero by following §5.
 During its turn, your acting hero may perform its innate attack or attune, but not both.
 Innate attack: [[summary:innate-attack]]
 If that innate attack has focus, resolve it by following §4.8.
-To attune, select a card from that hero's hand and attach it to that hero as an attuned card.
+To attune, select 1 or more cards from that hero's hand.
+Select no more cards than that hero's intellect.
+Attach the selected cards to that hero as attuned cards.
 
-> **What This Means:** This choice is binary. You use the printed innate attack now, or you increase future options by attune.
+> **Example:** If your hero has 3 intellect, you may select 1, 2, or 3 cards from that hero's hand and attune those cards with that one attune action.
+
+> **What This Means:** This choice is binary. You use the printed innate attack now, or you use your one attune action now. That attune action may attach multiple cards.
 
 ## 4.7 Play Skills
 

@@ -31,7 +31,8 @@ async function main() {
     "Agility summary did not use the authored canonical summary."
   );
   assert(
-    intellectSummary.includes("sets how many cards that hero draws at the start of its turn"),
+    intellectSummary.includes("sets start-of-turn draw") &&
+      intellectSummary.includes("maximum cards that hero may attach in one attune action"),
     "Intellect summary did not use the authored canonical summary."
   );
   assert(
@@ -40,8 +41,7 @@ async function main() {
     "Title summary did not use the authored canonical summary."
   );
   assert(
-    illustrationSummary.includes("printed art on a card") &&
-      illustrationSummary.includes("helps you recognize that card"),
+    illustrationSummary.includes("printed art on a card"),
     "Illustration summary did not use the authored canonical summary."
   );
 
@@ -62,9 +62,12 @@ async function main() {
     "Rendered anatomy page does not contain the Agility summary."
   );
   assert(
-    anatomyText.includes("intellect hero-stat : a stat on a hero") &&
-      anatomyText.includes("sets how many cards that hero") &&
-      anatomyText.includes("draws at the start of its turn"),
+    anatomyText.includes("intellect hero-stat") &&
+      anatomyText.includes("a stat on a hero") &&
+      anatomyText.includes("sets start-of-") &&
+      anatomyText.includes("turn draw") &&
+      anatomyText.includes("maximum cards that") &&
+      anatomyText.includes("may attach in one attune action"),
     "Rendered anatomy page does not contain the Intellect summary."
   );
   assert(
@@ -73,8 +76,7 @@ async function main() {
     "Rendered anatomy page does not contain the Title summary."
   );
   assert(
-    anatomyText.includes("illustration : the printed art on a card") &&
-      anatomyText.includes("helps you recognize that card"),
+    anatomyText.includes("illustration : the printed art on a card"),
     "Rendered anatomy page does not contain the Illustration summary."
   );
 

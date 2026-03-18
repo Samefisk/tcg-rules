@@ -31,7 +31,7 @@ Categories: card-type
 A special objective card placed face down on each corner **Tile** of the **Arena** during setup. When a **Hero** lands on a **Tile** with an **Arcane Item**, that **Hero** equips it immediately. Equipped **Arcane Items** reduce **Available Strength** and may be dropped through **Disarm** or **Knockback**.
 
 ### Attune
-To select a card from a **Hero's** **Hand** and attach it to that **Hero** as an attuned card. During a **Turn**, a **Hero** may perform its **Innate Attack** or **Attune**, but not both. Attuned cards increase that **Hero's** **Attunement** and may also provide matching **Talents**.
+To select 1 or more cards from a **Hero's** **Hand** and attach them to that **Hero** as attuned cards. During a **Turn**, a **Hero** may perform its **Innate Attack** or **Attune**, but not both. When a **Hero** **Attunes**, that **Hero** may attach up to a number of cards equal to its **Intellect**. Attuned cards increase that **Hero's** **Attunement** and may also provide matching **Talents**.
 
 ### Card
 A physical game object represented by a card. **Hero** cards, **Skills**, **Arcane Items**, and the **Arcane Field** are all cards in this ruleset.
@@ -134,15 +134,15 @@ The printed art on a card.
 
 ### Intellect
 Categories: hero-stat
-Summary: A stat on a Hero that sets how many cards that Hero draws at the start of its Turn.
+Summary: A stat on a Hero that sets start-of-turn draw and the maximum cards that Hero may attach in one Attune action.
 
-A stat on a **Hero** that sets how many cards that **Hero** draws at the start of its **Turn**. After picking up that **Hero's** **Pitched Cards**, draw cards equal to its **Intellect**, without drawing above **Wisdom (Max Hand Size)**.
+A stat on a **Hero** that sets how many cards that **Hero** draws at the start of its **Turn**. After picking up that **Hero's** **Pitched Cards**, draw cards equal to its **Intellect**, without drawing above **Wisdom (Max Hand Size)**. **Intellect** also sets the maximum number of cards that **Hero** may attach in a single **Attune** action.
 
 ### Innate Attack
 Categories: attack
 Summary: The printed attack effect on a Hero card that that Hero may perform during its Turn.
 
-The printed attack effect on a **Hero** card that that **Hero** may perform during its **Turn**. During a **Turn**, a **Hero** may perform one **Innate Attack** or **Attune**, but not both. The targets, range, and any **Focus** requirement of an **Innate Attack** depend on the specific printed attack.
+The printed attack effect on a **Hero** card that that **Hero** may perform during its **Turn**. During a **Turn**, a **Hero** may perform one **Innate Attack** or one **Attune** action, but not both. The targets, range, and any **Focus** requirement of an **Innate Attack** depend on the specific printed attack.
 
 ### Title
 Summary: The printed name at the top of a card that identifies that card.

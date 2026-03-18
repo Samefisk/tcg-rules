@@ -611,6 +611,21 @@ function renderTocContainer({ title, listHtml, listClasses = "toc-list" }) {
   `;
 }
 
+function renderSidebarSearchPanel() {
+  return `
+    <div class="sidebar-search" data-sidebar-search="true">
+      <div class="sidebar-search__header">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="search-icon-input" aria-hidden="true"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+        <input type="text" class="sidebar-search__input" data-search-input placeholder="Search rules, terms, keywords... or C term" autocomplete="off" aria-label="Search rulebook">
+      </div>
+      <div class="sidebar-search__results-wrap">
+        <div class="sidebar-search__results search-results" data-search-results></div>
+        <div class="sidebar-search__empty search-empty-state" data-search-empty hidden>No results found for "<span data-search-query-display></span>"</div>
+      </div>
+    </div>
+  `;
+}
+
 function renderTocOverlay({ title, listHtml, listClasses = "toc-list" }) {
   return `
     <div class="toc-overlay-backdrop" id="toc-overlay" data-toc-overlay hidden>
@@ -719,11 +734,7 @@ function renderRulePage(section, rules, glossaryIndex, ruleReferenceIndex, termU
         ${subsectionHtml}
       </article>
       <aside class="panel sidebar-panel">
-        ${renderTocContainer({
-          title: "Rulebook Contents",
-          listHtml: globalTocHtml,
-          listClasses: "toc-list global-toc-list"
-        })}
+        ${renderSidebarSearchPanel()}
       </aside>
     </div>
   `;
@@ -773,11 +784,7 @@ function renderChangelogPage(section, rules, glossaryIndex, ruleReferenceIndex, 
         ${changelogSections}
       </article>
       <aside class="panel sidebar-panel">
-        ${renderTocContainer({
-          title: "Rulebook Contents",
-          listHtml: globalTocHtml,
-          listClasses: "toc-list global-toc-list"
-        })}
+        ${renderSidebarSearchPanel()}
       </aside>
     </div>
   `;
@@ -1256,7 +1263,7 @@ function renderInline(text, glossaryIndex, ruleReferenceIndex, pagePath) {
     const href = relativeHref(pagePath, path.join(distDir, "glossary", `${term.id}.html`));
     return createPlaceholder(
       placeholders,
-      `<a class="glossary-ref" href="${href}" data-term="${escapeAttribute(term.label)}" data-definition="${escapeAttribute(stripMarkdown(term.shortDefinition))}" data-category-badges="${escapeAttribute(JSON.stringify(term.categoryBadges || []))}" data-child-terms="${escapeAttribute(JSON.stringify(term.childTerms || []))}">${escapeHtml(label)}</a>${renderCategoryBadgeStack(term.categoryBadges || [], { variant: "inline", pagePath })}`
+      `<a class="glossary-ref" href="${href}" data-term="${escapeAttribute(term.label)}" data-definition="${escapeAttribute(stripMarkdown(term.shortDefinition))}" data-category-badges="${escapeAttribute(JSON.stringify(term.categoryBadges || []))}" data-child-terms="${escapeAttribute(JSON.stringify(term.childTerms || []))}">${escapeHtml(label)}</a>${renderCategoryBadgeStack(term.categoryBadges || [], { variant: "inline", pagePath, toggleable: true })}`
     );
   });
 
@@ -1677,11 +1684,10 @@ function layout({ title, body, pagePath, floatingTabBar, tocOverlay = "" }) {
         ${body}
       </main>
     </div>
-    ${renderFloatingTabBar(floatingTabBar)}
-    
     <!-- Search Modal -->
-    <div class="search-modal-backdrop" id="search-modal" hidden>
+    <div class="search-modal-backdrop" id="search-modal" data-search-open="false">
       <div class="search-modal" role="dialog" aria-modal="true" aria-label="Search">
+        ${renderSearchLaunchHeader(floatingTabBar)}
         <div class="search-header">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="search-icon-input"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
           <input type="text" id="search-input" placeholder="Search rules, terms, keywords... or C term" autocomplete="off">
@@ -1720,69 +1726,83 @@ function layout({ title, body, pagePath, floatingTabBar, tocOverlay = "" }) {
 `;
 }
 
-function renderFloatingTabBar(config) {
-  const previousControl = renderTabBarNavControl({
+function renderSearchLaunchHeader(config) {
+  const previousControl = renderSearchLaunchNavControl({
     ...config.previous,
     direction: "previous",
-    icon: `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"></path></svg>`,
+    icon: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"></path></svg>`,
     label: "Previous section"
   });
-  const nextControl = renderTabBarNavControl({
+  const nextControl = renderSearchLaunchNavControl({
     ...config.next,
     direction: "next",
-    icon: `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18l6-6-6-6"></path></svg>`,
+    icon: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18l6-6-6-6"></path></svg>`,
     label: "Next section"
   });
-  const searchControl = renderTabBarButton({
-    classes: "floating-tab-button floating-tab-button-search",
-    title: "Search",
-    ariaLabel: "Open search",
-    disabled: false,
-    dataAttributes: 'data-search-trigger="true"',
-    icon: `<svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><line x1="20" y1="20" x2="16.65" y2="16.65"></line></svg>`,
-    label: "Search"
-  });
-  const commentsControl = renderTabBarButton({
-    classes: "floating-tab-button floating-tab-button-comments",
+  const commentsControl = renderSearchLaunchIconButton({
+    classes: "search-launch-action search-launch-action-comments",
     title: "Toggle comments",
     ariaLabel: "Toggle author comments",
     disabled: false,
     dataAttributes: 'data-comments-mode-trigger="true" aria-pressed="false"',
-    icon: `<svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>`,
+    icon: `<svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.05" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>`,
     label: "Comments"
+  });
+  const inlineBadgesControl = renderSearchLaunchIconButton({
+    classes: "search-launch-action search-launch-action-inline-badges",
+    title: "Toggle inline term badges",
+    ariaLabel: "Toggle inline term badges",
+    disabled: false,
+    dataAttributes: 'data-inline-term-badges-trigger="true" aria-pressed="false"',
+    icon: `<svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4.5" y="4.5" width="15" height="15" rx="4"></rect><path d="M9 12h6"></path><path d="M12 9v6"></path></svg>`,
+    label: "Badges"
   });
 
   return `
-    <nav class="floating-tab-bar-shell" aria-label="Page actions">
-      <div class="floating-tab-bar" data-floating-tab-bar="true">
-        ${previousControl}
-        ${nextControl}
-        <span class="floating-tab-divider" aria-hidden="true"></span>
-        ${searchControl}
-        ${commentsControl}
+    <div class="search-launch-header" data-search-launch-header="true">
+      <div class="search-launch-header__group">
+        <div class="search-launch-header__nav">
+          ${previousControl}
+          ${nextControl}
+        </div>
+        <div class="search-launch-header__actions">
+          ${inlineBadgesControl}
+          ${commentsControl}
+        </div>
       </div>
-    </nav>
+      <div class="search-launch-header__search">
+        <button
+          type="button"
+          class="search-launch-trigger"
+          title="Search"
+          aria-label="Open search"
+          data-search-trigger="true"
+        >
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.05" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><line x1="20" y1="20" x2="16.65" y2="16.65"></line></svg>
+          <span class="sr-only">Open search</span>
+        </button>
+      </div>
+    </div>
   `;
 }
 
-function renderTabBarNavControl({ href, enabled, title, ariaLabel, direction, icon, label }) {
+function renderSearchLaunchNavControl({ href, enabled, title, ariaLabel, direction, icon, label }) {
   if (enabled) {
     return `
       <a
         href="${href}"
-        class="floating-tab-button floating-tab-button-nav floating-tab-button-${direction}"
+        class="search-launch-nav search-launch-nav-${direction}"
         title="${escapeAttribute(title)}"
         aria-label="${escapeAttribute(ariaLabel)}"
       >
         ${icon}
         <span class="sr-only">${escapeHtml(label)}</span>
-        <span class="floating-tab-hover-label" aria-hidden="true">${escapeHtml(title)}</span>
       </a>
     `;
   }
 
-  return renderTabBarButton({
-    classes: `floating-tab-button floating-tab-button-nav floating-tab-button-${direction}`,
+  return renderSearchLaunchIconButton({
+    classes: `search-launch-nav search-launch-nav-${direction}`,
     title,
     ariaLabel,
     disabled: true,
@@ -1792,7 +1812,7 @@ function renderTabBarNavControl({ href, enabled, title, ariaLabel, direction, ic
   });
 }
 
-function renderTabBarButton({ classes, title, ariaLabel, disabled, dataAttributes, icon, label }) {
+function renderSearchLaunchIconButton({ classes, title, ariaLabel, disabled, dataAttributes, icon, label }) {
   return `
     <button
       type="button"
@@ -1808,12 +1828,13 @@ function renderTabBarButton({ classes, title, ariaLabel, disabled, dataAttribute
   `;
 }
 
-function renderCategoryBadgeStack(categoryBadges, { variant = "inline", pagePath } = {}) {
+function renderCategoryBadgeStack(categoryBadges, { variant = "inline", pagePath, toggleable = false } = {}) {
   if (!Array.isArray(categoryBadges) || categoryBadges.length === 0) {
     return "";
   }
 
   const className = `category-badge-stack category-badge-stack--${variant}`;
+  const toggleableAttribute = toggleable ? ' data-inline-term-badges="true"' : "";
   const badges = categoryBadges
     .map((category) => {
       const iconKind = getBadgeIconKind(category);
@@ -1850,7 +1871,7 @@ function renderCategoryBadgeStack(categoryBadges, { variant = "inline", pagePath
     })
     .join("");
 
-  return `<span class="${className}">${badges}</span>`;
+  return `<span class="${className}"${toggleableAttribute}>${badges}</span>`;
 }
 
 function renderCategoryBadgeGlyph(category, { pagePath, variant = "inline" } = {}) {

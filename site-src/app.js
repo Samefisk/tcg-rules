@@ -4,20 +4,62 @@ document.addEventListener("DOMContentLoaded", () => {
     initMobileNav();
     initTocToggle();
     initScrollSpy();
+    initInlineTermBadgeMode();
     initCommentsMode();
     initSearch();
+    initSidebarSearch();
     initBadgePixelSnap();
     initGlossaryTooltips();
     initHoloCards();
 });
 
 const DESKTOP_TOC_BREAKPOINT = 740;
+const INLINE_TERM_BADGES_STORAGE_KEY = "tcg-rules-inline-term-badges";
 const COMMENTS_MODE_STORAGE_KEY = "tcg-rules-comments-mode";
 const COMMENTS_FILE_HANDLE_HINT_PREFIX = "tcg-rules-comment-file:";
 const COMMENTS_FILE_HANDLE_DB_NAME = "tcg-rules-comment-authoring";
 const COMMENTS_FILE_HANDLE_STORE_NAME = "file-handles";
 const COMMENTS_PREVIEW_WRITE_ENDPOINT = "/__comment-authoring/write";
 const COMMENTS_PREVIEW_STATUS_ENDPOINT = "/__comment-authoring/status";
+
+function initInlineTermBadgeMode() {
+    const modeTriggers = [...document.querySelectorAll("[data-inline-term-badges-trigger]")];
+
+    if (modeTriggers.length === 0) return;
+
+    let inlineTermBadgesEnabled = false;
+
+    try {
+        inlineTermBadgesEnabled = window.localStorage.getItem(INLINE_TERM_BADGES_STORAGE_KEY) === "true";
+    } catch {
+        inlineTermBadgesEnabled = false;
+    }
+
+    function syncModeState() {
+        document.body.classList.toggle("inline-term-badges-enabled", inlineTermBadgesEnabled);
+
+        modeTriggers.forEach((trigger) => {
+            trigger.setAttribute("aria-pressed", inlineTermBadgesEnabled ? "true" : "false");
+            trigger.classList.toggle("is-active", inlineTermBadgesEnabled);
+        });
+    }
+
+    modeTriggers.forEach((trigger) => {
+        trigger.addEventListener("click", () => {
+            inlineTermBadgesEnabled = !inlineTermBadgesEnabled;
+
+            try {
+                window.localStorage.setItem(INLINE_TERM_BADGES_STORAGE_KEY, inlineTermBadgesEnabled ? "true" : "false");
+            } catch {
+                // Ignore storage failures and keep the in-memory state for this session.
+            }
+
+            syncModeState();
+        });
+    });
+
+    syncModeState();
+}
 
 function initMobileNav() {
     const trigger = document.getElementById("mobile-menu-trigger");
@@ -998,6 +1040,183 @@ const searchTypePriority = {
     changelog: 3
 };
 
+async function ensureSearchIndexLoaded() {
+    if (defaultFuse && changelogFuse) return searchData;
+
+    if (window.__SEARCH_DATA__ && typeof window.__SEARCH_DATA__ === "object") {
+        searchData = window.__SEARCH_DATA__;
+    } else if (Array.isArray(window.__SEARCH_INDEX__)) {
+        searchData = {
+            defaultIndex: window.__SEARCH_INDEX__,
+            changelogIndex: []
+        };
+    } else {
+        const res = await fetch(getBasepath() + "assets/search-index.json");
+        if (!res.ok) throw new Error("Failed to load search index");
+        const loaded = await res.json();
+        searchData = Array.isArray(loaded)
+            ? { defaultIndex: loaded, changelogIndex: [] }
+            : loaded;
+    }
+
+    defaultFuse = new Fuse(searchData.defaultIndex || [], {
+        keys: [
+            { name: "title", weight: 2 },
+            { name: "content", weight: 1 }
+        ],
+        threshold: 0.3,
+        ignoreLocation: true
+    });
+    changelogFuse = new Fuse(searchData.changelogIndex || [], {
+        keys: [
+            { name: "title", weight: 2 },
+            { name: "content", weight: 1 }
+        ],
+        threshold: 0.3,
+        ignoreLocation: true
+    });
+
+    return searchData;
+}
+
+function parseSearchQueryValue(rawQuery) {
+    const trimmed = rawQuery.trim();
+    const typeMatch = trimmed.match(/^(ss|s|t)(?:\s+(.*))?$/i);
+    const changelogMatch = trimmed.match(/^c(?:\s+(.*))?$/i);
+    if (typeMatch) {
+        const [, prefix, term] = typeMatch;
+        const normalizedPrefix = prefix.toLowerCase();
+        const type = normalizedPrefix === "ss" ? "subsection" : normalizedPrefix === "s" ? "section" : "term";
+
+        return {
+            mode: "typed",
+            type,
+            term: (term || "").trim()
+        };
+    }
+
+    if (!changelogMatch) {
+        return {
+            mode: "default",
+            type: null,
+            term: trimmed
+        };
+    }
+
+    return {
+        mode: "changelog",
+        type: "changelog",
+        term: (changelogMatch[1] || "").trim()
+    };
+}
+
+function applySearchInputModeClasses(input, parsed) {
+    input.classList.remove(
+        "search-input-mode-section",
+        "search-input-mode-subsection",
+        "search-input-mode-term",
+        "search-input-mode-changelog"
+    );
+
+    if (!parsed) return;
+    if (parsed.mode === "changelog") {
+        input.classList.add("search-input-mode-changelog");
+        return;
+    }
+    if (parsed.mode === "typed" && parsed.type) {
+        input.classList.add(`search-input-mode-${parsed.type}`);
+    }
+}
+
+function escapeHtmlValue(value) {
+    return String(value || "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
+}
+
+function getSearchSectionSubsections(sectionId) {
+    return (searchData?.defaultIndex || []).filter((item) => item.type === "subsection" && item.sectionId === sectionId);
+}
+
+function normalizeSearchUrlPath(value) {
+    if (!value) return "/";
+    try {
+        const url = new URL(value, window.location.origin);
+        return url.pathname.replace(/\/+$/, "") || "/";
+    } catch {
+        return value.replace(/\/+$/, "") || "/";
+    }
+}
+
+function normalizeSearchHash(value) {
+    return value || "";
+}
+
+function getSearchItemScrollspyId(item) {
+    if (!item) return null;
+    if (item.type === "section") {
+        return `rule-section-${item.id}`;
+    }
+    if (item.type === "subsection") {
+        return `section-${item.id.replace(/\./g, "-")}`;
+    }
+    return null;
+}
+
+function getSearchCurrentLocationState() {
+    return {
+        path: normalizeSearchUrlPath(window.location.pathname),
+        hash: normalizeSearchHash(window.location.hash)
+    };
+}
+
+function getSearchCurrentScrollspyId() {
+    return typeof window.__ACTIVE_SCROLLSPY_ID__ === "string" ? window.__ACTIVE_SCROLLSPY_ID__ : null;
+}
+
+function getSearchItemLocationState(item) {
+    try {
+        const url = new URL(`${getBasepath()}${item.url}`, window.location.origin);
+        return {
+            path: normalizeSearchUrlPath(url.pathname),
+            hash: normalizeSearchHash(url.hash)
+        };
+    } catch {
+        return {
+            path: normalizeSearchUrlPath(`${getBasepath()}${item.url}`),
+            hash: ""
+        };
+    }
+}
+
+function isCurrentSearchSectionItem(item) {
+    const activeScrollspyId = getSearchCurrentScrollspyId();
+    const sectionScrollspyId = getSearchItemScrollspyId(item);
+    if (activeScrollspyId && sectionScrollspyId === activeScrollspyId) return true;
+    if (activeScrollspyId) {
+        return getSearchSectionSubsections(item.id).some((subsection) => getSearchItemScrollspyId(subsection) === activeScrollspyId);
+    }
+
+    const currentLocation = getSearchCurrentLocationState();
+    const itemLocation = getSearchItemLocationState(item);
+    if (currentLocation.path === itemLocation.path) return true;
+
+    return getSearchSectionSubsections(item.id).some((subsection) => getSearchItemLocationState(subsection).path === currentLocation.path);
+}
+
+function isCurrentSearchSubsectionItem(item) {
+    const activeScrollspyId = getSearchCurrentScrollspyId();
+    if (activeScrollspyId) {
+        return getSearchItemScrollspyId(item) === activeScrollspyId;
+    }
+
+    const currentLocation = getSearchCurrentLocationState();
+    const itemLocation = getSearchItemLocationState(item);
+    return currentLocation.path === itemLocation.path && currentLocation.hash === itemLocation.hash;
+}
+
 function getPixelSnappedOffset(value, devicePixelRatio = window.devicePixelRatio || 1) {
     return (Math.round(value * devicePixelRatio) / devicePixelRatio) - value;
 }
@@ -1082,17 +1301,40 @@ function applyCategoryBadgeIconPresentation(badge, category, variant = "tooltip"
 async function initSearch() {
     const triggers = document.querySelectorAll("[data-search-trigger]");
     const modal = document.getElementById("search-modal");
+    const modalPanel = modal?.querySelector(".search-modal");
     const closeBtn = document.getElementById("search-close");
     const input = document.getElementById("search-input");
     const resultsContainer = document.getElementById("search-results");
     const emptyState = document.getElementById("search-empty");
     const queryDisplay = document.getElementById("search-query-display");
+    const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
 
-    if (!modal || !closeBtn || !input || !resultsContainer || !emptyState || !queryDisplay) return;
+    if (!modal || !modalPanel || !closeBtn || !input || !resultsContainer || !emptyState || !queryDisplay) return;
     let activeResultIndex = -1;
+    let lastSearchTrigger = document.querySelector("[data-search-launch-header] [data-search-trigger]") || closeBtn;
 
-    function openSearch() {
-        modal.hidden = false;
+    function isSearchOpen() {
+        return modal.getAttribute("data-search-open") === "true";
+    }
+
+    function clearSearchState() {
+        input.value = "";
+        resultsContainer.innerHTML = "";
+        emptyState.hidden = true;
+        activeResultIndex = -1;
+        input.removeAttribute("aria-activedescendant");
+        resultsContainer.classList.remove("search-results--reversed");
+    }
+
+    function nextFrame() {
+        return new Promise((resolve) => window.requestAnimationFrame(() => resolve()));
+    }
+
+    async function openSearch(trigger = null) {
+        if (modal.getAttribute("data-search-open") === "true") return;
+        lastSearchTrigger = trigger instanceof HTMLElement ? trigger : (document.activeElement instanceof HTMLElement ? document.activeElement : lastSearchTrigger);
+        modal.setAttribute("data-search-open", "true");
+        await nextFrame();
         input.focus();
         if (defaultFuse && changelogFuse) {
             handleSearch();
@@ -1101,13 +1343,15 @@ async function initSearch() {
         loadSearchIndex(); // Lazy load
     }
 
-    function closeSearch() {
-        modal.hidden = true;
-        input.value = "";
-        resultsContainer.innerHTML = "";
-        emptyState.hidden = true;
-        activeResultIndex = -1;
-        input.removeAttribute("aria-activedescendant");
+    async function closeSearch() {
+        if (modal.getAttribute("data-search-open") !== "true") return;
+        modal.setAttribute("data-search-open", "false");
+        clearSearchState();
+        if (lastSearchTrigger instanceof HTMLElement) {
+            window.requestAnimationFrame(() => {
+                lastSearchTrigger?.focus();
+            });
+        }
     }
 
     function getResultItems() {
@@ -1382,11 +1626,17 @@ async function initSearch() {
     }
 
     triggers.forEach((trigger) => {
-        trigger.addEventListener("click", openSearch);
+        trigger.addEventListener("click", () => {
+            void openSearch(trigger);
+        });
     });
-    closeBtn.addEventListener("click", closeSearch);
+    closeBtn.addEventListener("click", () => {
+        void closeSearch();
+    });
     modal.addEventListener("click", (e) => {
-        if (e.target === modal) closeSearch();
+        if (e.target === modal && modal.getAttribute("data-search-open") === "true") {
+            void closeSearch();
+        }
     });
     resultsContainer.addEventListener("click", (e) => {
         const expandToggle = e.target.closest(".search-result-expand");
@@ -1400,7 +1650,7 @@ async function initSearch() {
             return;
         }
         if (e.target.closest(".search-result-item") || e.target.closest(".search-subsection-item")) {
-            closeSearch();
+            void closeSearch();
         }
     });
     document.addEventListener("scrollspy:change", () => {
@@ -1410,19 +1660,19 @@ async function initSearch() {
     document.addEventListener("keydown", (e) => {
         if ((e.metaKey || e.ctrlKey) && e.key === "k") {
             e.preventDefault();
-            openSearch();
+            void openSearch(document.activeElement instanceof HTMLElement ? document.activeElement : lastSearchTrigger);
         }
-        if (!modal.hidden && e.key === "ArrowDown") {
+        if (isSearchOpen() && e.key === "ArrowDown") {
             e.preventDefault();
             const delta = isResultsVisualOrderReversed() ? -1 : 1;
             updateActiveResult(activeResultIndex === -1 ? getDefaultActiveResultIndex() : activeResultIndex + delta);
         }
-        if (!modal.hidden && e.key === "ArrowUp") {
+        if (isSearchOpen() && e.key === "ArrowUp") {
             e.preventDefault();
             const delta = isResultsVisualOrderReversed() ? 1 : -1;
             updateActiveResult(activeResultIndex === -1 ? getDefaultActiveResultIndex() : activeResultIndex + delta);
         }
-        if (!modal.hidden && e.key === "ArrowRight") {
+        if (isSearchOpen() && e.key === "ArrowRight") {
             const activeItem = getActiveNavigableItem();
             const activeGroup = getSectionGroupForItem(activeItem);
 
@@ -1435,7 +1685,7 @@ async function initSearch() {
                 moveSelectionToFirstSubsection(activeGroup);
             }
         }
-        if (!modal.hidden && e.key === "ArrowLeft") {
+        if (isSearchOpen() && e.key === "ArrowLeft") {
             const activeItem = getActiveNavigableItem();
             const activeGroup = getSectionGroupForItem(activeItem);
 
@@ -1452,7 +1702,7 @@ async function initSearch() {
             //     moveSelectionLeftFromSection(activeItem);
             // }
         }
-        if (!modal.hidden && e.key === "Enter") {
+        if (isSearchOpen() && e.key === "Enter") {
             const activeItem = getActiveNavigableItem();
             if (activeItem) {
                 e.preventDefault();
@@ -1464,45 +1714,14 @@ async function initSearch() {
                 }
             }
         }
-        if (e.key === "Escape" && !modal.hidden) {
-            closeSearch();
+        if (e.key === "Escape" && isSearchOpen()) {
+            void closeSearch();
         }
     });
 
     async function loadSearchIndex() {
-        if (defaultFuse && changelogFuse) return;
         try {
-            if (window.__SEARCH_DATA__ && typeof window.__SEARCH_DATA__ === "object") {
-                searchData = window.__SEARCH_DATA__;
-            } else if (Array.isArray(window.__SEARCH_INDEX__)) {
-                searchData = {
-                    defaultIndex: window.__SEARCH_INDEX__,
-                    changelogIndex: []
-                };
-            } else {
-                const res = await fetch(getBasepath() + "assets/search-index.json");
-                if (!res.ok) throw new Error("Failed to load search index");
-                const loaded = await res.json();
-                searchData = Array.isArray(loaded)
-                    ? { defaultIndex: loaded, changelogIndex: [] }
-                    : loaded;
-            }
-            defaultFuse = new Fuse(searchData.defaultIndex || [], {
-                keys: [
-                    { name: "title", weight: 2 },
-                    { name: "content", weight: 1 }
-                ],
-                threshold: 0.3,
-                ignoreLocation: true
-            });
-            changelogFuse = new Fuse(searchData.changelogIndex || [], {
-                keys: [
-                    { name: "title", weight: 2 },
-                    { name: "content", weight: 1 }
-                ],
-                threshold: 0.3,
-                ignoreLocation: true
-            });
+            await ensureSearchIndexLoaded();
             handleSearch();
         } catch (e) {
             console.error(e);
@@ -1699,6 +1918,409 @@ async function initSearch() {
     }
 
     input.addEventListener("input", handleSearch);
+}
+
+async function initSidebarSearch() {
+    const roots = [...document.querySelectorAll("[data-sidebar-search]")];
+
+    if (roots.length === 0) return;
+
+    function collapseSiblingGroups(container, activeGroup) {
+        [...container.querySelectorAll(".search-result-group[open]")].forEach((group) => {
+            if (group !== activeGroup) {
+                group.open = false;
+            }
+        });
+    }
+
+    function buildSectionBrowseHtml(sectionItems) {
+        const basepath = getBasepath();
+
+        return sectionItems.map((item, index) => {
+            const subsectionItems = getSearchSectionSubsections(item.id);
+            const subsectionHtml = subsectionItems.map((subsection, subsectionIndex) => `
+                <a href="${basepath}${subsection.url}" class="search-subsection-item${isCurrentSearchSubsectionItem(subsection) ? " is-current-location" : ""}" id="sidebar-search-subsection-${index}-${subsectionIndex}" data-subsection-id="${subsection.id}" data-parent-section-id="${item.id}" data-item-url="${subsection.url}">
+                    <span class="search-subsection-title">${subsection.title}</span>
+                </a>
+            `).join("");
+
+            return `
+                <details class="search-result-group" ${isCurrentSearchSectionItem(item) ? "open" : ""}>
+                    <summary class="search-result-expand">
+                        <span class="search-result-item${isCurrentSearchSectionItem(item) ? " is-current-location" : ""}" id="sidebar-search-result-${index}" data-section-id="${item.id}" data-item-url="${item.url}">
+                            <span class="search-result-heading">
+                                <span class="search-result-title">${item.title}</span>
+                                <span class="search-result-type">${item.type}</span>
+                            </span>
+                            <span class="search-result-preview">${item.content}</span>
+                        </span>
+                    </summary>
+                    <div class="search-subsection-list">
+                        ${subsectionHtml}
+                    </div>
+                </details>
+            `;
+        }).join("");
+    }
+
+    function buildSearchResultsHtml(items) {
+        const basepath = getBasepath();
+
+        return items.map((item, index) => {
+            const isCurrentSection = item.type === "section" && isCurrentSearchSectionItem(item);
+            const isCurrentSubsection = item.type === "subsection" && isCurrentSearchSubsectionItem(item);
+
+            return `
+                <a href="${basepath}${item.url}" class="search-result-item${isCurrentSection || isCurrentSubsection ? " is-current-location" : ""}" id="sidebar-search-result-${index}" data-item-url="${item.url}">
+                    <span class="search-result-heading">
+                        <span class="search-result-title">${item.title}</span>
+                        <span class="search-result-type">${item.type}</span>
+                    </span>
+                    <span class="search-result-preview">${item.content}</span>
+                </a>
+            `;
+        }).join("");
+    }
+
+    roots.forEach((root) => {
+        const input = root.querySelector("[data-search-input]");
+        const resultsContainer = root.querySelector("[data-search-results]");
+        const emptyState = root.querySelector("[data-search-empty]");
+        const queryDisplay = root.querySelector("[data-search-query-display]");
+
+        if (!input || !resultsContainer || !emptyState || !queryDisplay) return;
+        let activeResultIndex = -1;
+
+        function isKeyboardModeActive() {
+            const activeElement = document.activeElement;
+            return activeElement instanceof HTMLElement && root.contains(activeElement);
+        }
+
+        function getNavigableItems() {
+            return [
+                ...resultsContainer.querySelectorAll(".search-result-item, .search-subsection-item")
+            ].filter((item) => item.getClientRects().length > 0);
+        }
+
+        function clearActiveResult() {
+            activeResultIndex = -1;
+            input.removeAttribute("aria-activedescendant");
+            getNavigableItems().forEach((item) => {
+                item.classList.remove("active-descendant");
+                item.setAttribute("aria-selected", "false");
+            });
+        }
+
+        function updateActiveResult(nextIndex) {
+            const items = getNavigableItems();
+            if (items.length === 0) {
+                clearActiveResult();
+                return;
+            }
+
+            const clampedIndex = Math.max(0, Math.min(nextIndex, items.length - 1));
+            activeResultIndex = clampedIndex;
+
+            items.forEach((item, index) => {
+                const isActive = index === clampedIndex;
+                item.classList.toggle("active-descendant", isActive);
+                item.setAttribute("aria-selected", String(isActive));
+            });
+
+            const activeItem = items[clampedIndex];
+            input.setAttribute("aria-activedescendant", activeItem.id);
+            activeItem.scrollIntoView({ block: "nearest" });
+        }
+
+        function getDefaultActiveResultIndex() {
+            const items = getNavigableItems();
+            const currentSectionItem = items.find((item) => item.classList.contains("search-result-item") && item.classList.contains("is-current-location"));
+            if (currentSectionItem) {
+                return items.indexOf(currentSectionItem);
+            }
+
+            const currentItem = items.find((item) => item.classList.contains("is-current-location"));
+            if (currentItem) {
+                return items.indexOf(currentItem);
+            }
+
+            return 0;
+        }
+
+        function ensureActiveResult() {
+            if (activeResultIndex !== -1) return;
+            updateActiveResult(getDefaultActiveResultIndex());
+        }
+
+        function getActiveNavigableItem() {
+            return getNavigableItems()[activeResultIndex] || null;
+        }
+
+        function setActiveResultByElement(element) {
+            const items = getNavigableItems();
+            const nextIndex = items.indexOf(element);
+            if (nextIndex === -1) return;
+            updateActiveResult(nextIndex);
+        }
+
+        function getSectionGroups() {
+            return [...resultsContainer.querySelectorAll(".search-result-group")];
+        }
+
+        function getSectionGroupForItem(item) {
+            return item?.closest(".search-result-group") || null;
+        }
+
+        function collapseResultGroup(group) {
+            if (!group || !group.open) return;
+            group.open = false;
+        }
+
+        function expandResultGroup(group) {
+            if (!group || group.open) return;
+            collapseSiblingGroups(resultsContainer, group);
+            group.open = true;
+        }
+
+        function moveSelectionToFirstSubsection(group) {
+            if (!group) return;
+            expandResultGroup(group);
+            const firstSubsection = group.querySelector(".search-subsection-item");
+            if (firstSubsection) {
+                setActiveResultByElement(firstSubsection);
+            }
+        }
+
+        function moveSelectionToParentSection(subsectionItem) {
+            const activeGroup = subsectionItem?.closest(".search-result-group");
+            const parentItem = activeGroup?.querySelector(".search-result-item");
+            if (!activeGroup || !parentItem) return;
+            setActiveResultByElement(parentItem);
+        }
+
+        function showErrorState() {
+            resultsContainer.innerHTML = "";
+            emptyState.textContent = "Search index could not be loaded.";
+            emptyState.hidden = false;
+            clearActiveResult();
+        }
+
+        function showEmptyState(message, query = "") {
+            resultsContainer.innerHTML = "";
+            queryDisplay.textContent = query;
+            emptyState.innerHTML = query
+                ? `${escapeHtmlValue(message)} "<span data-search-query-display>${escapeHtmlValue(query)}</span>"`
+                : escapeHtmlValue(message);
+            emptyState.hidden = false;
+            clearActiveResult();
+        }
+
+        function showSectionBrowseResults() {
+            const sectionItems = (searchData?.defaultIndex || []).filter((item) => item.type === "section");
+            resultsContainer.classList.remove("search-results--reversed");
+            emptyState.hidden = true;
+            resultsContainer.innerHTML = buildSectionBrowseHtml(sectionItems);
+            clearActiveResult();
+            if (isKeyboardModeActive()) {
+                ensureActiveResult();
+            }
+        }
+
+        function showSearchResults(items) {
+            resultsContainer.classList.remove("search-results--reversed");
+            emptyState.hidden = true;
+            resultsContainer.innerHTML = buildSearchResultsHtml(items);
+            clearActiveResult();
+            if (isKeyboardModeActive()) {
+                ensureActiveResult();
+            }
+        }
+
+        async function renderForCurrentQuery() {
+            try {
+                await ensureSearchIndexLoaded();
+            } catch (error) {
+                console.error(error);
+                showErrorState();
+                return;
+            }
+
+            const parsed = parseSearchQueryValue(input.value);
+            applySearchInputModeClasses(input, parsed);
+
+            if (!parsed.term) {
+                if (parsed.mode === "changelog" && input.value.trim()) {
+                    showEmptyState("C searches changelog entries only. Try", "C attunement");
+                    return;
+                }
+                if (parsed.mode === "typed" && input.value.trim()) {
+                    const examples = {
+                        section: { message: "S searches sections only. Try", query: "S setup" },
+                        subsection: { message: "SS searches subsections only. Try", query: "SS 4.7" },
+                        term: { message: "T searches glossary terms only. Try", query: "T attunement" }
+                    };
+                    const example = examples[parsed.type] || examples.section;
+                    showEmptyState(example.message, example.query);
+                    return;
+                }
+
+                showSectionBrowseResults();
+                return;
+            }
+
+            const activeFuse = parsed.mode === "changelog" ? changelogFuse : defaultFuse;
+            const results = activeFuse.search(parsed.term)
+                .filter((result) => !parsed.type || result.item.type === parsed.type)
+                .sort((a, b) => {
+                    const typeDelta = (searchTypePriority[a.item.type] ?? Number.MAX_SAFE_INTEGER) - (searchTypePriority[b.item.type] ?? Number.MAX_SAFE_INTEGER);
+                    if (typeDelta !== 0) return typeDelta;
+                    return (a.score ?? 0) - (b.score ?? 0);
+                });
+
+            if (results.length === 0) {
+                const queryPrefix = parsed.mode === "changelog"
+                    ? "C"
+                    : parsed.type === "subsection"
+                        ? "SS"
+                        : parsed.type === "section"
+                            ? "S"
+                            : parsed.type === "term"
+                                ? "T"
+                                : "";
+                const displayQuery = queryPrefix ? `${queryPrefix} ${parsed.term}` : parsed.term;
+                showEmptyState("No results found for", displayQuery);
+                return;
+            }
+
+            showSearchResults(results.slice(0, 12).map((result) => result.item));
+        }
+
+        input.addEventListener("input", () => {
+            void renderForCurrentQuery();
+        });
+
+        input.addEventListener("focus", () => {
+            ensureActiveResult();
+        });
+
+        root.addEventListener("focusin", () => {
+            ensureActiveResult();
+        });
+
+        root.addEventListener("focusout", () => {
+            window.requestAnimationFrame(() => {
+                if (!isKeyboardModeActive()) {
+                    clearActiveResult();
+                }
+            });
+        });
+
+        resultsContainer.addEventListener("click", (event) => {
+            const expandToggle = event.target.closest(".search-result-expand");
+            if (!expandToggle) return;
+            const group = expandToggle.closest(".search-result-group");
+            if (!group) return;
+
+            if (!group.open) {
+                window.requestAnimationFrame(() => {
+                    collapseSiblingGroups(resultsContainer, group);
+                });
+            }
+        });
+
+        root.addEventListener("keydown", (event) => {
+            if (!isKeyboardModeActive()) return;
+
+            if (event.key === "ArrowDown") {
+                event.preventDefault();
+                ensureActiveResult();
+                updateActiveResult(activeResultIndex === -1 ? getDefaultActiveResultIndex() : activeResultIndex + 1);
+                return;
+            }
+
+            if (event.key === "ArrowUp") {
+                event.preventDefault();
+                ensureActiveResult();
+                updateActiveResult(activeResultIndex === -1 ? getDefaultActiveResultIndex() : activeResultIndex - 1);
+                return;
+            }
+
+            if (event.key === "ArrowRight") {
+                const activeItem = getActiveNavigableItem();
+                const activeGroup = getSectionGroupForItem(activeItem);
+
+                if (activeGroup && activeItem?.classList.contains("search-result-item")) {
+                    event.preventDefault();
+                    moveSelectionToFirstSubsection(activeGroup);
+                }
+                return;
+            }
+
+            if (event.key === "ArrowLeft") {
+                const activeItem = getActiveNavigableItem();
+                const activeGroup = getSectionGroupForItem(activeItem);
+
+                if (activeItem?.classList.contains("search-subsection-item")) {
+                    event.preventDefault();
+                    moveSelectionToParentSection(activeItem);
+                } else if (activeGroup?.open && activeItem?.classList.contains("search-result-item")) {
+                    event.preventDefault();
+                    collapseResultGroup(activeGroup);
+                    setActiveResultByElement(activeItem);
+                }
+                return;
+            }
+
+            if (event.key === "Enter") {
+                const activeItem = getActiveNavigableItem();
+                if (!activeItem) return;
+
+                event.preventDefault();
+                if (activeItem.classList.contains("search-subsection-item")) {
+                    activeItem.click();
+                    return;
+                }
+
+                const activeGroup = getSectionGroupForItem(activeItem);
+                const summary = activeGroup?.querySelector(".search-result-expand");
+                const href = activeItem.getAttribute("href");
+
+                if (summary) {
+                    summary.click();
+                    if (activeGroup?.open) {
+                        const firstSubsection = activeGroup.querySelector(".search-subsection-item");
+                        if (firstSubsection) {
+                            setActiveResultByElement(firstSubsection);
+                        }
+                    } else {
+                        setActiveResultByElement(activeItem);
+                    }
+                    return;
+                }
+
+                if (href) {
+                    window.location.href = href;
+                }
+                return;
+            }
+
+            if (event.key === "Escape") {
+                clearActiveResult();
+                const activeElement = document.activeElement;
+                if (activeElement instanceof HTMLElement && root.contains(activeElement)) {
+                    activeElement.blur();
+                }
+            }
+        });
+
+        document.addEventListener("scrollspy:change", () => {
+            if (!input.value.trim()) {
+                void renderForCurrentQuery();
+            }
+        });
+
+        void renderForCurrentQuery();
+    });
 }
 
 function initGlossaryTooltips() {

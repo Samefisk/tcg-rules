@@ -35,7 +35,7 @@ A hero card may show one or more talents near the center of the card.
 Resolve talent matching by following §4.7.
 4. Printed hero stats: A hero card shows agility, intellect, strength, and max health in its stat area.
   - Agility: [[summary:agility]] Use §3.3 and §4.5 for the full rules.
-  - Intellect: [[summary:intellect]] Use §4.3 for the full draw rule.
+  - Intellect: [[summary:intellect]] Use §§4.3 and 4.6 for the full rules.
   - Strength: [[summary:strength]] Use §5.4 for the full knockback rule.
   - Max Health: [[summary:max-health]] Use §§6.6 and 6.7 for damage and death.
 Use §§3 through 6 for the full rules behind those values.
