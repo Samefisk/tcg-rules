@@ -31,7 +31,12 @@ Categories: card-type
 A special objective card placed face down on each corner **Tile** of the **Arena** during setup. When a **Hero** lands on a **Tile** with an **Arcane Item**, that **Hero** equips it immediately. Equipped **Arcane Items** reduce **Available Strength** and may be dropped through **Disarm** or **Knockback**.
 
 ### Attune
-To select 1 or more cards from a **Hero's** **Hand** and attach them to that **Hero** as attuned cards. During a **Turn**, a **Hero** may perform its **Innate Attack** or **Attune**, but not both. When a **Hero** **Attunes**, that **Hero** may attach up to a number of cards equal to its **Intellect**. Attuned cards increase that **Hero's** **Attunement** and may also provide matching **Talents**.
+To select 1 or more cards from a **Hero's** **Hand** and attach them as attuned cards. During a **Turn**, a **Hero** may perform its **Innate Attack** or **Attune**, but not both. When a **Hero** **Attunes**, that **Hero** may select up to a number of cards equal to its **Intellect**. Those selected cards may be attached to that **Hero**, to one or more **Adjacent** **Allies** with less **Attunement** than that **Hero**, or split between those eligible recipients. Attuned cards increase the **Attunement** of the **Hero** they are attached to.
+
+### Ally
+Summary: A hero on your side.
+
+A **Hero** on your side. An **Ally** is controlled by the same **Player** as the acting **Hero**.
 
 ### Card
 A physical game object represented by a card. **Hero** cards, **Skills**, **Arcane Items**, and the **Arcane Field** are all cards in this ruleset.
@@ -176,10 +181,10 @@ The amount of **Damage** a **Hero** can still take before dying. **Remaining Hea
 A close-range **Range Category** or cast category used on attacks and effects. The current ruleset recognizes **Melee** as a classification, but detailed shared targeting procedures are still reserved for a later combat section.
 
 ### Mystical
-A defined **Talent** that may appear on a **Hero**, an attuned card, or a **Skill**. **Mystical** has no standalone rules effect beyond talent matching.
+A defined **Talent** that may appear on a **Hero**, an attuned card, or a **Skill**. **Mystical** currently has no standalone shared rules effect.
 
 ### Nature
-A defined **Talent** that may appear on a **Hero**, an attuned card, or a **Skill**. **Nature** has no standalone rules effect beyond talent matching.
+A defined **Talent** that may appear on a **Hero**, an attuned card, or a **Skill**. **Nature** currently has no standalone shared rules effect.
 
 ### Obstruction
 An object or unit that blocks movement and enforces one-per-**Tile** occupancy. An **Obstruction** cannot be moved through unless an **Effect** says otherwise, and no rule may allow 2 **Obstructions** to occupy the same **Tile** at the same time. Each **Hero** is an **Obstruction**.
@@ -247,9 +252,11 @@ A stat on a **Hero** used to calculate **Knockback** resistance. Start with prin
 A reserved keyword intended to prevent or reduce **Spirit Damage**. The current core rules do not define a shared procedure for **Spirit Guard**, so its behavior exists only if a future rule or card text defines it.
 
 ### Talent
-Summary: A trait on a Hero, an attuned card, or a Skill used for talent matching.
+Summary: A trait on a Hero, an attuned card, or a Skill.
 
-A trait on a **Hero**, an attuned card, or a **Skill** used for talent matching. A **Hero** may play a **Skill** only if that card's **Talent** matches a **Talent** on the **Hero** or on one of that **Hero's** attuned cards.
+A trait on a **Hero**, an attuned card, or a **Skill**. A **Talent** identifies a card or **Hero** as part of a thematic group. The current core rules do not assign a shared legality check or other standalone procedure to **Talent**.
+
+<!-- AMBIGUOUS: A future talent restriction will replace the removed talent matching rule. -->
 
 ### Utility
 A **Skill Type** used for cards focused on support, repositioning, or other non-attack outcomes. The label classifies the card's role, but the specific behavior is defined by that card's text.
@@ -281,7 +288,7 @@ The sequence in which one **Hero** acts as the active unit. A **Turn** follows a
 A game area that can contain cards or units. Defined zones in the current rules include a **Hero Pool Zone**, a **Hand**, and each **Hero's** pitch area.
 
 ### Adjacent
-A reserved keyword intended to refer to a neighboring **Tile**. The current core rules define orthogonal movement between adjacent tiles, but do not yet establish a shared targeting definition for **Adjacent** in card text.
+A keyword that refers to a neighboring **Tile** one step north, south, east, or west. **Adjacent** does not include diagonal tiles.
 
 ### Arc Buff
 A ranged cast universal category that may appear on an **Innate Attack** or a **Skill**. The current core rules assign no shared behavior to **Arc Buff** beyond that classification.
@@ -317,7 +324,7 @@ A reserved keyword intended for creating an object, unit, or effect. The current
 A reserved keyword intended for longer-range targeting. The current core rules do not define a shared procedure for **Distant**, so its behavior exists only if a future rule or card text defines it.
 
 ### Fire
-A defined **Talent** that may appear on a **Hero**, an attuned card, or a **Skill**. **Fire** has no standalone rules effect beyond talent matching.
+A defined **Talent** that may appear on a **Hero**, an attuned card, or a **Skill**. **Fire** currently has no standalone shared rules effect.
 
 ### Gouge
 A melee cast attack category that may appear on an **Innate Attack** or a **Skill**. The current core rules assign no shared behavior to **Gouge** beyond that classification.
@@ -326,7 +333,7 @@ A melee cast attack category that may appear on an **Innate Attack** or a **Skil
 A ranged cast attack category that may appear on an **Innate Attack** or a **Skill**. The current core rules assign no shared behavior to **Launch** beyond that classification.
 
 ### Lightning
-A defined **Talent** that may appear on a **Hero**, an attuned card, or a **Skill**. **Lightning** has no standalone rules effect beyond talent matching.
+A defined **Talent** that may appear on a **Hero**, an attuned card, or a **Skill**. **Lightning** currently has no standalone shared rules effect.
 
 ### Long-reaching
 A reserved keyword intended for extended reach. The current core rules do not define a shared procedure for **Long-reaching**, so its behavior exists only if a future rule or card text defines it.

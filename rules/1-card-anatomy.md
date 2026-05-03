@@ -32,17 +32,16 @@ This identifies the hero during setup and play.
 2. Illustration: [[summary:illustration]]
 3. Talents: [[summary:talent]]
 A hero card may show one or more talents near the center of the card.
-Resolve talent matching by following §4.7.
 4. Printed hero stats: A hero card shows agility, intellect, strength, and max health in its stat area.
   - Agility: [[summary:agility]] Use §3.3 and §4.5 for the full rules.
   - Intellect: [[summary:intellect]] Use §§4.3 and 4.6 for the full rules.
   - Strength: [[summary:strength]] Use §5.4 for the full knockback rule.
-  - Max Health: [[summary:max-health]] Use §§6.6 and 6.7 for damage and death.
-Use §§3 through 6 for the full rules behind those values.
+  - Max Health: [[summary:max-health]] Use §§6.6 and 6.7 for damage and death. 
+  - Use §§3 through 6 for the full rules behind those values.
 5. Effect text: [[summary:effect-text]]
   - Innate attack: [[summary:innate-attack]] Use §4.6 for the full rule.
 
-> **What This Means:** A hero card is both your identity reference and your base action reference. It shows who the hero is, which skills fit that hero, and what that hero can always do without drawing a specific skill.
+> **What This Means:** A hero card is both your identity reference and your base action reference. It shows who the hero is, which traits that hero has, and what that hero can always do without drawing a specific skill.
 
 ## 1.2 Skills
 
@@ -61,7 +60,6 @@ _Example skill_
 1. Title: [[summary:title]]
 This identifies the skill when another rule or effect refers to it.
 2. Talent: [[summary:talent]]
-Check talent matching by following §4.7.
 3. Attunement requirement: The numeric attunement requirement appears near the top of the card with the talent.
 This tells you how much attunement that hero must have before you may play that skill.
 4. Skill type: [[summary:skill-type]]

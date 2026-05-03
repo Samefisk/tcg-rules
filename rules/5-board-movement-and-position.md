@@ -63,9 +63,11 @@ A hero without an equipped arcane item can still be knocked back.
 
 ## 5.5 Targeting and Range
 
+Adjacent means a tile one step north, south, east, or west from another tile.
+Adjacent does not include diagonal tiles.
 The targets of an innate attack depend on that innate attack.
 The range of an innate attack depends on that innate attack.
 The targets of a skill depend on that skill.
 The range of a skill depends on that skill.
 
-<!-- AMBIGUOUS: A later combat section should define line of sight, adjacency, and other shared targeting rules. -->
+<!-- AMBIGUOUS: A later combat section should define line of sight and other shared targeting rules beyond Adjacent. -->

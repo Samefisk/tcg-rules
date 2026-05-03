@@ -65,18 +65,19 @@ Innate attack: [[summary:innate-attack]]
 If that innate attack has focus, resolve it by following §4.8.
 To attune, select 1 or more cards from that hero's hand.
 Select no more cards than that hero's intellect.
-Attach the selected cards to that hero as attuned cards.
+For each selected card, choose 1 eligible recipient.
+An eligible recipient is that hero or an adjacent ally with less attunement than that hero.
+Attach each selected card to its chosen eligible recipient as an attuned card.
 
-> **Example:** If your hero has 3 intellect, you may select 1, 2, or 3 cards from that hero's hand and attune those cards with that one attune action.
+> **Example:** If your hero has 3 intellect, you may select 3 cards from that hero's hand and attach 1 to that hero, 1 to an adjacent ally with less attunement, and 1 to another adjacent ally with less attunement.
 
-> **What This Means:** This choice is binary. You use the printed innate attack now, or you use your one attune action now. That attune action may attach multiple cards.
+> **What This Means:** This choice is binary. You use the printed innate attack now, or you use your one attune action now. That attune action may attach multiple cards, and those cards may be split between your acting hero and eligible allies.
 
 ## 4.7 Play Skills
 
 Your acting hero may play a skill from its hand during its turn.
 Your acting hero may play any number of legal skills during that turn.
 A skill is legal only if all of the following are true:
-- That skill's talent matches a talent on that hero or on one of that hero's attuned cards.
 - That hero has attunement equal to or greater than that skill's numeric attunement requirement.
 - If that skill has focus, that hero resolves it by following §4.8.
 - If that skill lists a cost, you pay that cost.
@@ -86,7 +87,7 @@ After that skill resolves, move that skill to that hero's pitch area unless that
 
 > **Example:** If a skill has an attunement requirement of 2 and your hero has 1 attunement, you cannot play that skill.
 
-> **What This Means:** The limiting factor on card play is not count. It is whether your hero has enough matching talent, enough attunement, and any required focus for each card.
+> **What This Means:** The limiting factor on card play is not count. It is whether your hero has enough attunement and can satisfy any required focus, cost, and target checks for each card.
 
 ## 4.8 Focus
 
